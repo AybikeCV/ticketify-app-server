@@ -36,7 +36,7 @@ handleErrors(app);
 // ℹ️ Defines the server port (default: 5005)
 const PORT = process.env.PORT || 5005;
 
-// ℹ️ Optional for serverless deployments like Vercel.
+// ℹ️ Optional for serverless deployments like Vercel
 app.listen(PORT, () => {
   console.log(`Server listening. Local access on http://localhost:${PORT}`);
 });
