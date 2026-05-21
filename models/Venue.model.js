@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema, model } = require("mongoose");
-const Venue = model("Venue", venueSchema);
 
 const venueSchema = new Schema(
     {
@@ -29,30 +28,30 @@ const venueSchema = new Schema(
             trim: true,
             default: "Netherlands",
         },
-       
+
         location: {
-  type: {
-    type: String,
-    enum: ["Point"],
-    default: "Point",
-  },
-  coordinates: {
-    type: [Number], // [longitude, latitude]
-    required: [true, "Coordinates are required"],
-    validate: {
-      validator: function (val) {
-        // Must be exactly [longitude, latitude]
-        // longitude: -180 to 180, latitude: -90 to 90
-        return (
-          val.length === 2 &&
-          val[0] >= -180 && val[0] <= 180 &&
-          val[1] >= -90  && val[1] <= 90
-        );
-      },
-      message: "Coordinates must be [longitude, latitude] with valid ranges",
-    },
-  },
-},
+            type: {
+                type: String,
+                enum: ["Point"],
+                default: "Point",
+            },
+            coordinates: {
+                type: [Number], // [longitude, latitude]
+                required: [true, "Coordinates are required"],
+                validate: {
+                    validator: function (val) {
+                        // Must be exactly [longitude, latitude]
+                        // longitude: -180 to 180, latitude: -90 to 90
+                        return (
+                            val.length === 2 &&
+                            val[0] >= -180 && val[0] <= 180 &&
+                            val[1] >= -90 && val[1] <= 90
+                        );
+                    },
+                    message: "Coordinates must be [longitude, latitude] with valid ranges",
+                },
+            },
+        },
 
 
         capacity: {
@@ -80,5 +79,7 @@ const venueSchema = new Schema(
 
     }
 )
+
+const Venue = model("Venue", venueSchema);
 
 module.exports = Venue

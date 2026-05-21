@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema, model } = require("mongoose");
-const User = model("User", userSchema);
+
 
 const userSchema = new Schema(
   {
@@ -24,7 +24,6 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required."],
       minlength: [6, "Password must be at least 6 characters"],
-      select: false, // never returns in queries unless explicitly requested
     },
     role: {
       type: String,
@@ -53,6 +52,6 @@ const userSchema = new Schema(
   }
 );
 
-
+const User = model("User", userSchema)
 
 module.exports = User;
