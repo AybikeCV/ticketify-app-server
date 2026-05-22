@@ -48,11 +48,10 @@ const venueSchema = new Schema(
                             val[1] >= -90 && val[1] <= 90
                         );
                     },
-                    message: "Coordinates must be [longitude, latitude] with valid ranges",
+                    message: "Coordinates must be [longitude, latitude] with valid ranges.",
                 },
             },
         },
-
 
         capacity: {
             type: Number,
