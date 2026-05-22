@@ -57,6 +57,7 @@ const concertSchema = new Schema
                 required: [true, "Genre is required."],
                 enum: {
                     values: [
+                        "ambient",
                         "pop",
                         "rock",
                         "hiphop",
@@ -67,6 +68,7 @@ const concertSchema = new Schema
                         "metal",
                         "indie",
                         "alternative",
+                        "psychedelic",
                         "other",
                     ],
                     message: "Invalid genre value.",
