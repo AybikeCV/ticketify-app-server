@@ -163,11 +163,7 @@ if (typeof isActive === "boolean") user.isActive = isActive
 
 //DELETE /api/users/:id (Admin) 
 
-router.delete(
-  "/:id",
-  verifyToken,
-  verifyAdmin,
-  async (req, res, next) => {
+router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
 
     try {
 
@@ -184,31 +180,24 @@ router.delete(
         user._id.toString() ===
         req.payload._id.toString()
       ) {
-        return res.status(400).json({
-          errorMessage:
-            "You cannot delete your own admin account."
+        return res.status(400).json({errorMessage: "You cannot delete your own admin account."
         })
       }
 
       // prevent deleting other admins
       if (user.role === "admin") {
-        return res.status(403).json({
-          errorMessage:
-            "Admins cannot be deleted."
+        return res.status(403).json({errorMessage: "Admins cannot be deleted."
         })
       }
 
       // delete cloudinary avatar
       if (user.avatarPublicId) {
-        await cloudinary.uploader.destroy(
-          user.avatarPublicId
-        )
+        await cloudinary.uploader.destroy(user.avatarPublicId)
       }
 
       await user.deleteOne()
 
-      res.status(200).json({
-        message: "User deleted successfully."
+      res.status(200).json({errorMessage: "User deleted successfully."
       })
 
     } catch (error) {

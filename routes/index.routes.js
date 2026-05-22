@@ -12,7 +12,10 @@ const venueRoutes = require("./venues.routes")
 router.use("/venues", venueRoutes)
 
 const concertRoutes = require("./concerts.routes")
-router.use("concerts", concertRoutes)
+router.use("/concerts", concertRoutes)
+
+const bookingRoutes = require("./bookings.routes")
+router.use("/bookings", bookingRoutes)
 
 
 

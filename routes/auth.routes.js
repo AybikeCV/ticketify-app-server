@@ -98,6 +98,16 @@ router.get("/verify", verifyToken, (req, res) => {
   res.status(200).json({ payload: req.payload })
 })
 
+//GET "/me" (Private)
+
+router.get("/me", verifyToken, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.payload._id);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 
