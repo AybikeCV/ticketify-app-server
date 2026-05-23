@@ -2,7 +2,7 @@ const router = require("express").Router();
 const cloudinary = require("../middlewares/cloudinary.config");
 const { verifyToken, verifyAdmin } = require("../middlewares/auth.middlewares");
 const Venue = require("../models/Venue.model");
-const Event = require("../models/Concert.model");
+const Concert = require("../models/Concert.model");
 
 
 //POST /api/venues (Admin) creates venue
@@ -13,8 +13,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res, next) => {
             req.body;
 
         if (!name || !address || !city || !location || !capacity) {
-            res.status(400);
-            throw new Error("Please provide all required venue fields");
+            return res.status(400).json({errorMessage: "Please provide all required fields for the venue."})
         }
 
         const venue = await Venue.create({
@@ -42,9 +41,7 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
         const venue = await Venue.findById(req.params.id)
 
         if (!venue) {
-            return res.status(404).json({
-                errorMessage: "Venue not found."
-            })
+            return res.status(404).json({errorMessage: "Venue not found."})
         }
 
         // delete old image if new image uploaded
@@ -87,28 +84,24 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
 
 
         if (!venue) {
-            return res.status(404).json({ errorMessage: "Venue not found." })
+            return res.status(404).json({errorMessage: "Venue not found."})
         }
 
         // 3. Check if venue still has upcoming events
         const upcomingCount =
-            await Event.countDocuments({
+            await Concert.countDocuments({
                 venue: venue._id,
                 status: "upcoming"
             })
 
         // 4. Prevent deleting active venue
         if (upcomingCount > 0) {
-            return res.status(400).json({
-                errorMessage:
-                    `Cannot delete venue with ${upcomingCount} upcoming event(s). Cancel or reassign them first.`
-            })
+            return res.status(400).json({errorMessage:`Cannot delete venue with ${upcomingCount} upcoming event(s). Cancel or reassign them first.`})
         }
 
 
         if (venue.imagePublicId) {
-            await cloudinary.uploader.destroy(venue.imagePublicId
-            )
+            await cloudinary.uploader.destroy(venue.imagePublicId)
         }
         await venue.deleteOne()
 
@@ -145,12 +138,12 @@ router.get("/:id", async (req, res, next) => {
         }
 
         // Get upcoming events at this venue
-        const events = await Event.find({
+        const upcomingConcerts = await Concert.find({
             venue: venue._id,
             status: "upcoming"
         }).sort({ date: 1 })
 
-        res.json({ venue, events })
+        res.json({ venue, upcomingConcerts })
 
     } catch (error) {
         next(error)

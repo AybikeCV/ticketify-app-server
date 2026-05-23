@@ -65,7 +65,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res, next) => {
       const populatedConcert =
         await concert.populate(
           "venue",
-          "name city address"
+          "name city address image"
         )
 
       // send response
@@ -111,7 +111,7 @@ router.patch("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
     if (featured !== undefined)       concert.featured     = featured;
  
     const updatedConcert = await concert.save({ runValidators: true });
-    const populatedConcert = await updatedConcert.populate("venue", "name city");
+    const populatedConcert = await updatedConcert.populate("venue", "name city image");
     res.json(populatedConcert);
   } catch (error) {
     next(error);
@@ -159,7 +159,7 @@ router.get("/", async (req, res, next) => {
     }
  
     const concerts = await Concert.find(filteredConcert)
-      .populate("venue", "name city address location")
+      .populate("venue", "name city address location image")
       .sort({ date: 1 });
  
     res.json(concerts);
@@ -171,11 +171,11 @@ router.get("/", async (req, res, next) => {
 //GET /api/concerts/featured Public 
 router.get("/featured", async (req, res, next) => {
   try {
-    const concerts = await Concert.find({ featured: true, status: "upcoming" })
-      .populate("venue", "name city")
+    const featuredConcerts = await Concert.find({ featured: true, status: "upcoming" })
+      .populate("venue", "name city image")
       .sort({ date: 1 })
       .limit(6);
-    res.json(concerts);
+    res.json(featuredConcerts);
   } catch (error) {
     next(error);
   }
@@ -185,7 +185,7 @@ router.get("/featured", async (req, res, next) => {
 
 router.get("/:id", async (req, res, next) => {
   try {
-    const concert = await Concert.findById(req.params.id).populate("venue", "name city address location capacity");
+    const concert = await Concert.findById(req.params.id).populate("venue", "name image city address location capacity ");
     if (!concert) {
       res.status(404).json({errorMessage: "Concert not found."})
     }
