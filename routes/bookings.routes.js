@@ -105,7 +105,7 @@ router.patch("/:id/", verifyToken, async (req, res, next) => {
      return res.status(404).json({errorMessage:"Booking not found."})
     }
  
-    const isOwner = booking.user.toString() === req.user._id.toString();
+    const isOwner = booking.user.toString() === req.payload._id.toString();
     if (!isOwner && req.user.role !== "admin") {
       return res.status(403).json({errorMessage:"Not authorized to cancel this booking."})
     }
@@ -136,7 +136,7 @@ router.get("/", verifyToken, verifyAdmin, async (req, res, next) => {
   try {
     const bookings = await Booking.find()
       .populate("user",  "name email")
-      .populate("event", "title date")
+      .populate("concert", "title date")
       .sort({ createdAt: -1 });
     res.json(bookings);
   } catch (error) {
@@ -150,9 +150,14 @@ router.get("/mybookings", verifyToken, async (req, res, next) => {
 
   try {
 
-    const myBookings = await Booking.find({
-      user: req.payload._id
-    })
+    const myBookings = await Booking.find({user: req.payload._id}).populate({
+  path: "concert",
+  populate: {
+    path: "venue",
+    select: "name city"
+  }
+})
+.sort({ createdAt: -1 });
 
     res.json(myBookings)
 
@@ -174,8 +179,8 @@ router.get("/:id", verifyToken, async (req, res, next) => {
       return res.status(404).json({errorMessage:"Booking not found."})
     }
  
-    const isOwner = booking.user._id.toString() === req.user._id.toString();
-    if (!isOwner && req.user.role !== "admin") {
+    const isOwner = booking.user._id.toString() === req.payload._id.toString();
+    if (!isOwner && req.payload.role !== "admin") {
       return res.status(403).json({errorMessage:"Not authorized to view this booking."})
     }
  

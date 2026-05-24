@@ -38,7 +38,7 @@ const bookingSchema = new Schema(
     { timestamps: true }
 );
 
-bookingSchema.index({ user: 1, event: 1 });
+bookingSchema.index({ user: 1, concert: 1 });
 
 const Booking = model("Booking", bookingSchema);
 

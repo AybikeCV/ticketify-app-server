@@ -47,7 +47,7 @@ router.post("/", verifyToken, verifyAdmin, async (req, res, next) => {
         totalSeats: totalSeats,
 
         availableSeats:
-          availableSeats || totalSeats,
+         totalSeats,
 
         image: image || "",
 
@@ -85,8 +85,8 @@ router.post("/", verifyToken, verifyAdmin, async (req, res, next) => {
 router.patch("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
   try {
     const concert = await Concert.findById(req.params.id);
-    if (!concert) {
-      res.status(404).json({errorMessage: "Concert not found."})
+    if (!concert) { 
+      return res.status(404).json({errorMessage: "Concert not found."})
     }
  
     const { title, artist, description, venue, date, doorsOpen, genre, price, totalSeats, image, imagePublicId, status, featured } = req.body;

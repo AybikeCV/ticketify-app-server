@@ -103,7 +103,7 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
 
     try {
 
-        const users = await User.find().select("name email role avatar createdAt")
+        const users = await User.find().select("name email role avatar isActive createdAt")
         console.log(users)
 
         if (users.length === 0) {
