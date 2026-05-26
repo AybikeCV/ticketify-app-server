@@ -98,47 +98,43 @@ if (concert.availableSeats < quantity) {
 
 //PATCH /api/bookings/:id (Private own booking or admin)
 
-router.patch("/:id/", verifyToken, async (req, res, next) => {
+router.patch("/:id", verifyToken, async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id);
+
     if (!booking) {
-     return res.status(404).json({errorMessage:"Booking not found."})
+      return res.status(404).json({ errorMessage: "Booking not found." });
     }
- 
-    const isOwner = booking.user.toString() === req.payload._id.toString();
-    if (!isOwner && req.user.role !== "admin") {
-      return res.status(403).json({errorMessage:"Not authorized to cancel this booking."})
+
+    const isOwner =
+      booking.user.toString() === req.payload._id.toString();
+
+    const isAdmin = req.payload.role === "admin";
+
+    // only user or admin can cancel
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ errorMessage: "Not allowed." });
     }
- 
-    if (booking.status === "cancelled") {
-      return res.status(400).json({errorMessage:"Booking is already cancelled."})
+
+    if (booking.status !== "confirmed") {
+      return res.status(400).json({
+        errorMessage: "Only confirmed bookings can be cancelled.",
+      });
     }
- 
-    booking.status       = "cancelled";
-    booking.cancelledAt  = new Date();
-    booking.cancelReason = req.body.reason || "";
+
+    booking.status = "cancelled";
+    booking.cancelledAt = new Date();
+
     await booking.save();
- 
-    // Restore seats to the event
+
     await Concert.findByIdAndUpdate(booking.concert, {
       $inc: { availableSeats: booking.quantity },
     });
- 
-    res.json({ message: "Booking cancelled successfully", booking });
-  } catch (error) {
-    next(error);
-  }
-});
 
-// GET /api/bookings  (Admin)
-
-router.get("/", verifyToken, verifyAdmin, async (req, res, next) => {
-  try {
-    const bookings = await Booking.find()
-      .populate("user",  "name email")
-      .populate("concert", "title date")
-      .sort({ createdAt: -1 });
-    res.json(bookings);
+    return res.json({
+      message: "Booking cancelled successfully",
+      booking,
+    });
   } catch (error) {
     next(error);
   }
@@ -167,6 +163,19 @@ router.get("/mybookings", verifyToken, async (req, res, next) => {
     })
   }
 })
+
+router.get("/", verifyToken, verifyAdmin, async (req, res, next) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("user", "name email")
+      .populate("concert", "title artist date")
+      .sort({ createdAt: -1 });
+
+    res.json(bookings);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET /api/bookings/:id  (Private — own booking or admin)
 router.get("/:id", verifyToken, async (req, res, next) => {

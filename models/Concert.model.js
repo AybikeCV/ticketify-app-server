@@ -65,6 +65,7 @@ const concertSchema = new Schema
                         "jazz",
                         "classical",
                         "rnb",
+                        "folk",
                         "metal",
                         "indie",
                         "alternative",

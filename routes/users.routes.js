@@ -142,6 +142,16 @@ router.patch("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
             res.status(401).json({ errorMessage: "User not found." })
         }
 
+        if (
+  user.role === "admin" &&
+  user._id.toString() !== req.payload._id
+) {
+  return res.status(403).json({
+    errorMessage:
+      "Admins cannot modify other admins."
+  });
+}
+
 
         const { role, isActive } = req.body;
 
