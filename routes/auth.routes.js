@@ -76,7 +76,8 @@ router.post("/login", async (req, res, next) => {
     const payload = {
       _id: foundUser._id,
       email: foundUser.email,
-      role: foundUser.role
+      role: foundUser.role,
+      name: foundUser.name
     }
 
     const tokenConfig = {
@@ -95,6 +96,7 @@ router.post("/login", async (req, res, next) => {
 
 // GET "/api/auth/verify" => Only for frontend purposes. So the frontend know who the owner of the token is.
 router.get("/verify", verifyToken, (req, res) => {
+ 
   res.status(200).json({ payload: req.payload })
 })
 

@@ -72,10 +72,11 @@ router.post("/", verifyToken, verifyAdmin, async (req, res, next) => {
       res.status(201).json(populatedConcert)
 
     } catch (error) {
-
-      res.status(500).json({errorMessage: "Failed to create concert."
-      })
-    }
+  console.log("CREATE CONCERT ERROR:", error); 
+  res.status(400).json({
+    errorMessage: error.message || "Failed to create concert."
+  });
+}
   }
 )
 
@@ -124,18 +125,32 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
   try {
     const concert = await Concert.findById(req.params.id);
     if (!concert) {
-      res.status(404).json({errorMessage: "Concert not found."})
+      return res.status(404).json({errorMessage: "Concert not found."})
     }
  
-    const confirmedBookings = await Booking.countDocuments({ event: concert._id, status: "confirmed" });
-    if (confirmedBookings > 0) {
-      res.status(400).json({errorMessage: `Cannot delete the concert with ${confirmedBookings} confirmed booking(s). Cancel it instead.`})
+     await Booking.updateMany(
+      { concert: concert._id, status: "confirmed" },
+      {
+        $set: {
+          status: "cancelled",
+          cancelledAt: new Date(),
+          cancelReason: "Concert was removed by admin"
+        }
+      }
+    );
+
+    // 2. Delete image from cloudinary
+    if (concert.imagePublicId) {
+      await cloudinary.uploader.destroy(concert.imagePublicId);
     }
- 
-    if (concert.imagePublicId) await cloudinary.uploader.destroy(concert.imagePublicId);
- 
+
+    // 3. Delete concert
     await concert.deleteOne();
-    res.json({ message: "Concert removed successfully" });
+
+    res.json({
+      message: "Concert deleted and related bookings cancelled successfully"
+    });
+
   } catch (error) {
     next(error);
   }
@@ -187,7 +202,7 @@ router.get("/:id", async (req, res, next) => {
   try {
     const concert = await Concert.findById(req.params.id).populate("venue", "name image city address location capacity ");
     if (!concert) {
-      res.status(404).json({errorMessage: "Concert not found."})
+      return res.status(404).json({errorMessage: "Concert not found."})
     }
     res.json(concert);
   } catch (error) {

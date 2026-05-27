@@ -13,11 +13,9 @@ const bookingSchema = new Schema(
             ref: "Concert",
             required: [true, "Concert is required"],
         },
-        quantity: {
-            type: Number,
-            required: [true, "Quantity is required"],
-            min: [1, "Must book at least 1 ticket"],
-            max: [10, "Cannot book more than 10 tickets at once"],
+        seats: {
+            type: [String],
+            required: [true, "At least one seat must be selected"],
         },
         totalPrice: {
             type: Number,

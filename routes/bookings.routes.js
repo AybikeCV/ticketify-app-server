@@ -8,93 +8,79 @@ const { verifyToken, verifyAdmin } = require("../middlewares/auth.middlewares")
 //POST /api/bookings (Private) create a booking 
 
 router.post("/", verifyToken, async (req, res, next) => {
+  try {
+    const { concertId, seats } = req.body;
 
-    try {
-
-      const { concertId, quantity } =
-        req.body
-
-      // check required fields
-      if (!concertId || !quantity) {
-
-        return res.status(400).json({errorMessage: "Concert and quantity are required."
-        })
-      }
-
-      const concert = await Concert.findById(concertId)
-
-      if (!concert) {
-
-        return res.status(404).json({errorMessage: "Concert not found."})
-      }
-
-if (concert.status !== "upcoming") {
-
-        return res.status(400).json({errorMessage: `Cannot book tickets for a ${concert.status} concert`
-        })
-      }
-
-if (concert.availableSeats < quantity) {
-
-    return res.status(400).json({errorMessage:`Only ${concert.availableSeats} seat(s) remaining`
-        })
-      }
-
-
-      const existing = await Booking.findOne({
-
-          user: req.payload._id,
-
-          concert: concertId,
-
-          status: "confirmed"
-        })
-
-      if (existing) {
-
-    return res.status(400).json({errorMessage: "You already have a confirmed booking for this concert."
-        })
-      }
-
-      const booking = await Booking.create({
-
-          user: req.payload._id,
-
-          concert: concertId,
-
-          quantity: quantity,
-
-          totalPrice:
-            concert.price * quantity
-        })
-
-
-      concert.availableSeats -= quantity
-
-      if (concert.availableSeats === 0) {
-        concert.status = "sold_out"
-      }
-
-      await concert.save()
-
-      // populate booking info
-      const populatedBooking = await booking.populate({
-            path: "concert",
-            populate: {
-            path: "venue",
-            select: "name city"
-          }
-        })
-
-      // send response
-      res.status(201).json(populatedBooking)
-
-    } catch (error) {
-
-      next(error)
+    // ✅ validation
+    if (!concertId || !seats || !Array.isArray(seats) || seats.length === 0) {
+      return res.status(400).json({
+        errorMessage: "Concert and seats are required."
+      });
     }
+
+    const concert = await Concert.findById(concertId);
+
+    if (!concert) {
+      return res.status(404).json({ errorMessage: "Concert not found." });
+    }
+
+    if (concert.status !== "upcoming") {
+      return res.status(400).json({
+        errorMessage: `Cannot book tickets for a ${concert.status} concert`
+      });
+    }
+
+    // (OPTIONAL SIMPLE CHECK)
+    if (concert.availableSeats < seats.length) {
+      return res.status(400).json({
+        errorMessage: `Only ${concert.availableSeats} seat(s) remaining`
+      });
+    }
+
+    // prevent duplicate booking same concert
+    const existing = await Booking.findOne({
+      user: req.payload._id,
+      concert: concertId,
+      status: "confirmed"
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        errorMessage: "You already have a confirmed booking for this concert."
+      });
+    }
+
+    // 💡 create booking with seats
+    const booking = await Booking.create({
+      user: req.payload._id,
+      concert: concertId,
+      seats,
+      totalPrice: concert.price * seats.length
+    });
+
+    // update available seats (temporary hybrid logic)
+    concert.availableSeats -= seats.length;
+
+    if (concert.availableSeats <= 0) {
+      concert.status = "sold_out";
+    }
+
+    await concert.save();
+
+    const populatedBooking = await booking.populate({
+      path: "concert",
+      populate: {
+        path: "venue",
+        select: "name city"
+      }
+    });
+
+    res.status(201).json(populatedBooking);
+
+  } catch (error) {
+    next(error);
   }
-)
+});
 
 //PATCH /api/bookings/:id (Private own booking or admin)
 
@@ -128,7 +114,7 @@ router.patch("/:id", verifyToken, async (req, res, next) => {
     await booking.save();
 
     await Concert.findByIdAndUpdate(booking.concert, {
-      $inc: { availableSeats: booking.quantity },
+      $inc: { availableSeats: booking.seats.length },
     });
 
     return res.json({
