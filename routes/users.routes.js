@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const User = require("../models/User.model")
-const cloudinary = require("../middlewares/cloudinary.config")
+const { cloudinary } = require("../middlewares/cloudinary.config")
 const { verifyToken, verifyAdmin } = require("../middlewares/auth.middlewares")
 const bcrypt = require("bcryptjs")
 

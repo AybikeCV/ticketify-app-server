@@ -2,10 +2,10 @@
 
 const router = require("express").Router();
 
-const uploader = require("../middlewares/cloudinary.config.js");
+const {upload} = require("../middlewares/cloudinary.config.js");
 
 // POST "/api/upload"
-router.post("/", uploader.single("image"), (req, res, next) => {
+router.post("/", upload.single("image"), (req, res, next) => {
   // console.log("file is: ", req.file);
 
   if (!req.file) {

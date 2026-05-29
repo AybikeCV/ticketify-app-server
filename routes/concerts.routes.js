@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const cloudinary = require ("../middlewares/cloudinary.config")
+const { cloudinary } = require ("../middlewares/cloudinary.config")
 const Concert = require("../models/Concert.model")
 const Booking = require("../models/Booking.model")
 const { verifyToken, verifyAdmin } = require("../middlewares/auth.middlewares")
@@ -111,14 +111,16 @@ router.patch("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
     if (status)                       concert.status       = status;
     if (featured !== undefined)       concert.featured     = featured;
  
-    const updatedConcert = await concert.save({ runValidators: true });
-    const populatedConcert = await updatedConcert.populate("venue", "name city image");
-    res.json(populatedConcert);
-  } catch (error) {
-    next(error);
-  }
-});
+ const updatedConcert = await concert.save({ runValidators: true });
 
+const freshConcert = await Concert.findById(updatedConcert._id)
+  .populate("venue", "name city address location image");
+
+res.json(freshConcert);
+  }catch (error) {
+  next(error);
+}
+  })
 //DELETE api/concerts/:id (Admin) delete a concert
 
 router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
@@ -144,7 +146,7 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
       await cloudinary.uploader.destroy(concert.imagePublicId);
     }
 
-    // 3. Delete concert
+
     await concert.deleteOne();
 
     res.json({

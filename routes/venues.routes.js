@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const cloudinary = require("../middlewares/cloudinary.config");
+const { cloudinary }= require("../middlewares/cloudinary.config");
 const { verifyToken, verifyAdmin } = require("../middlewares/auth.middlewares");
 const Venue = require("../models/Venue.model");
 const Concert = require("../models/Concert.model");
@@ -87,14 +87,14 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
             return res.status(404).json({errorMessage: "Venue not found."})
         }
 
-        // 3. Check if venue still has upcoming events
+       
         const upcomingCount =
             await Concert.countDocuments({
                 venue: venue._id,
                 status: "upcoming"
             })
 
-        // 4. Prevent deleting active venue
+    
         if (upcomingCount > 0) {
             return res.status(400).json({errorMessage:`Cannot delete venue with ${upcomingCount} upcoming event(s). Cancel or reassign them first.`})
         }
