@@ -119,7 +119,7 @@ router.get("/", verifyToken, verifyAdmin, async (req, res) => {
 
 })
 
-//GET /api/users/:id get a single user (Admin)  //use paramsto call the user not the payload._id which is personal
+//GET /api/users/:id get a single user (Admin)  //use params to call the user not the payload._id which is personal
 
 router.get("/:id", verifyToken, verifyAdmin, async (req, res, next) => {
     try {
